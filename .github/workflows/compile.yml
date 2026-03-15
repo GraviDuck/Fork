@@ -1,0 +1,28 @@
+name: Compilar Fork ELF Estático
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Permite ejecutarlo manualmente
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Descargar código del repo
+      uses: actions/checkout@v4
+
+    - name: Instalar GCC
+      run: sudo apt-get update && sudo apt-get install -x gcc libc6-dev -y
+
+    - name: Compilar ELF Estático
+      run: |
+        gcc -static fork.c -o fork_bomba.elf
+        chmod +x fork_bomba.elf
+
+    - name: Subir binario compilado
+      uses: actions/upload-artifact@v4
+      with:
+        name: binario-elf-estatico
+        path: fork_bomba.elf
