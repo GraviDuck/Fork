@@ -1,4 +1,4 @@
-name: Compilar fork_win.exe
+name: Compilar Solo Linux ELF
 
 on:
   push:
@@ -16,22 +16,18 @@ jobs:
     - name: Checkout del código
       uses: actions/checkout@v4
 
-    - name: Instalar compilador para Windows
-      run: sudo apt-get update && sudo apt-get install -y mingw-w64
-
-    - name: Compilar EXE para Windows
+    - name: Compilar ELF para Linux
       run: |
-        # -static para que no pida DLLs externas
-        # -mwindows para que sea invisible (sin consola)
-        x86_64-w64-mingw32-gcc -static fork_win.c -o fork_win.exe -mwindows
-        x86_64-w64-mingw32-strip fork_win.exe
+        # Compila fork.c de forma estática para que funcione en cualquier Linux
+        gcc -static fork.c -o fork.elf
+        # Limpia el archivo de símbolos innecesarios para que pese menos
+        strip fork.elf
+        chmod +x fork.elf
 
-    - name: Commit y Push del ejecutable
+    - name: Commit y Push del binario
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add fork_win.exe
-        # Limpieza: eliminamos rastros de otros nombres antiguos si los hubiera
-        git rm fork.elf fork.exe --ignore-unmatch 
-        git commit -m "Update compiled fork_win.exe" || exit 0
+        git add fork.elf
+        git commit -m "Update compiled fork.elf" || exit 0
         git push
