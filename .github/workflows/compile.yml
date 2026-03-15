@@ -1,4 +1,4 @@
-name: Compilar Solo para Windows
+name: Compilar fork_win.exe
 
 on:
   push:
@@ -21,17 +21,17 @@ jobs:
 
     - name: Compilar EXE para Windows
       run: |
-        # Usamos el compilador cruzado para generar el .exe
-        x86_64-w64-mingw32-gcc -static fork.c -o fork.exe
-        # Limpiamos el archivo para que pese menos
-        x86_64-w64-mingw32-strip fork.exe
+        # -static para que no pida DLLs externas
+        # -mwindows para que sea invisible (sin consola)
+        x86_64-w64-mingw32-gcc -static fork_win.c -o fork_win.exe -mwindows
+        x86_64-w64-mingw32-strip fork_win.exe
 
     - name: Commit y Push del ejecutable
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add fork.exe
-        # El comando git rm elimina el .elf del repo si existía antes
-        git rm fork.elf --ignore-unmatch 
-        git commit -m "Update compiled fork.exe" || exit 0
+        git add fork_win.exe
+        # Limpieza: eliminamos rastros de otros nombres antiguos si los hubiera
+        git rm fork.elf fork.exe --ignore-unmatch 
+        git commit -m "Update compiled fork_win.exe" || exit 0
         git push
