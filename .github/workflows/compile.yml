@@ -1,4 +1,4 @@
-name: Compilar y Subir fork.elf
+name: Compilar Solo para Windows
 
 on:
   push:
@@ -16,17 +16,22 @@ jobs:
     - name: Checkout del código
       uses: actions/checkout@v4
 
-    - name: Compilar ELF Estático
-      run: |
-        # No hace falta instalar gcc, ya viene en el runner de GitHub
-        gcc -static fork.c -o fork.elf
-        strip fork.elf  # Esto reduce el tamaño del archivo quitando símbolos de depuración
-        chmod +x fork.elf
+    - name: Instalar compilador para Windows
+      run: sudo apt-get update && sudo apt-get install -y mingw-w64
 
-    - name: Commit y Push del binario
+    - name: Compilar EXE para Windows
+      run: |
+        # Usamos el compilador cruzado para generar el .exe
+        x86_64-w64-mingw32-gcc -static fork.c -o fork.exe
+        # Limpiamos el archivo para que pese menos
+        x86_64-w64-mingw32-strip fork.exe
+
+    - name: Commit y Push del ejecutable
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add fork.elf
-        git commit -m "Update compiled fork.elf" || exit 0
+        git add fork.exe
+        # El comando git rm elimina el .elf del repo si existía antes
+        git rm fork.elf --ignore-unmatch 
+        git commit -m "Update compiled fork.exe" || exit 0
         git push
